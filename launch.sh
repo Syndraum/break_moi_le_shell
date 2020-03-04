@@ -69,6 +69,31 @@ function check_err_output {
 	fi
 }
 
+function check_file_output {
+	ERROR=0
+	for file in $FILES_OUT_DIR/bash/*
+	do
+		filename=$(echo $file | sed -e "s/files\/output\/bash\///g")
+		FIND=$(find "$FILES_OUT_DIR"/minishell -name "$filename" -type f)
+		if [ -z "$FIND" ]; then
+			ERROR=1
+		else
+			DIFF=$(diff $FILES_OUT_DIR/bash/$filename $FILES_OUT_DIR/minishell/$filename)
+			if [ "$DIFF" != "" ] ; then
+				ERROR=1
+			else
+				rm -rf "$FILES_OUT_DIR"/bash/"$filename"
+				rm -rf "$FILES_OUT_DIR"/minishell/"$filename"
+			fi
+		fi
+	done
+	if [ "$ERROR" = "1" ]; then
+		print_color "[FAILURE]" $FAIL
+	else
+		print_color "[OK]" $OK
+	fi
+}
+
 function lauch_test {
 	if [ -z "$1" ]; then
 		return 1
@@ -85,6 +110,12 @@ function lauch_test {
 	fi
 	check_std_output $1
 	check_err_output $1
+	echo "$FILES_OUT_DIR"/bash/* | grep '*' 2>/dev/null >/dev/null
+	ERROR=$?
+	if [ "$ERROR" = "1" ]; then
+		echo -en "File output\t: "
+		check_file_output
+	fi
 }
 
 make -C $DIR

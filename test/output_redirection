@@ -1,2 +1,2 @@
 echo test > files/output/tmp/test
-echo lol >> files/output/tmp/test
+echo lol >> files/output/tmp/lol
