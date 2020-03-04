@@ -3,6 +3,7 @@
 DIR="../minishell"
 
 OUTPUT_DIR="output"
+FILES_DIR="files"
 OK=$'\033[38;5;46m'
 OPT=$'\033[38;5;11m'
 FAIL=$'\033[38;5;9m'
@@ -10,6 +11,10 @@ RESET=$'\033[0m'
 
 function print_color() {
 	echo "$2$1$RESET"
+}
+
+function cat_files {
+	echo ""
 }
 
 function read_test {
@@ -69,3 +74,5 @@ rm -rf minishell "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 ln -s "$DIR/minishell" minishell
 lauch_test echo
+lauch_test argument
+lauch_test multi_cmd

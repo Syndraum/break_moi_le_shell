@@ -1,0 +1,4 @@
+echo bonjour
+echo \"bonjour\"
+echo 'bonjour'
+echo -n -n One\"argument\"'lo'l; echo \"n\"''ee\"d\"more'?'''\"'\";
