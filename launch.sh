@@ -3,7 +3,10 @@
 DIR="../minishell"
 
 OUTPUT_DIR="output"
-FILES_DIR="files"
+FILES_IN_DIR="files/input"
+FILES_OUT_DIR="files/output"
+FILE_TMP_DIR="$FILES_OUT_DIR"/tmp
+echo $FILE_TMP_DIR
 OK=$'\033[38;5;46m'
 OPT=$'\033[38;5;11m'
 FAIL=$'\033[38;5;9m'
@@ -14,15 +17,29 @@ function print_color() {
 }
 
 function cat_files {
-	echo ""
+	echo "$FILE_TMP_DIR"/* | grep '*' 2>/dev/null >/dev/null
+	ERROR=$?
+	if [ "$ERROR" = "0" ]; then
+		return 1;
+	fi
+	for file in $FILE_TMP_DIR/*
+	do
+		filename=$(echo $file | sed -e "s/files\/output\/tmp\///g")
+		mv $file "$FILES_OUT_DIR"/"$1"/"$filename"
+	done
 }
 
 function read_test {
+	touch "$OUTPUT_DIR/$1_err_$2" "$OUTPUT_DIR/$1_$2"
+	EXEC="./minishell"
+	if [ "$2" = "bash" ]; then
+		EXEC="bash"
+	fi
 	while IFS= read -r line
 	do
-		echo "$line" | bash 2>> "$OUTPUT_DIR/$1_err_bash"  >> "$OUTPUT_DIR/$1_bash"
-		echo "$line" | ./minishell 2>> "$OUTPUT_DIR/$1_err_minishell" >> "$OUTPUT_DIR/$1_minishell" || return 1
+		echo "$line" | $EXEC 2>> "$OUTPUT_DIR/$1_err_$2"  >> "$OUTPUT_DIR/$1_$2"
 	done < "test/$1"
+	cat_files $2
 	return 0
 }
 
@@ -58,7 +75,8 @@ function lauch_test {
 	fi
 	echo -e "\n"$1 | tr a-z A-Z
 	echo -en "Execution\t: "
-	read_test "$1"
+	read_test "$1" bash
+	read_test "$1" minishell
 	ERROR=$?
 	if [ "$ERROR" = "1" ]; then
 		print_color "[FAILURE]" $FAIL
@@ -70,9 +88,10 @@ function lauch_test {
 }
 
 make -C $DIR
-rm -rf minishell "$OUTPUT_DIR"
-mkdir -p "$OUTPUT_DIR"
+rm -rf minishell "$OUTPUT_DIR" "$FILES_OUT_DIR"
+mkdir -p "$OUTPUT_DIR" "$FILES_OUT_DIR" "$FILES_OUT_DIR"/bash "$FILES_OUT_DIR"/minishell "$FILES_OUT_DIR"/tmp
 ln -s "$DIR/minishell" minishell
 lauch_test echo
 lauch_test argument
 lauch_test multi_cmd
+lauch_test output_redirection
