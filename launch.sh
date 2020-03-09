@@ -30,16 +30,32 @@ function cat_files {
 }
 
 function read_test {
-	touch "$OUTPUT_DIR/$1_err_$2" "$OUTPUT_DIR/$1_$2"
+	touch "$OUTPUT_DIR/tmp_err_bash" "$OUTPUT_DIR/tmp_bash"
+	touch "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
+	touch "$OUTPUT_DIR/$1_err_bash" "$OUTPUT_DIR/$1_bash"
+	touch "$OUTPUT_DIR/$1_err_minishell" "$OUTPUT_DIR/$1_minishell"
 	EXEC="./minishell"
 	if [ "$2" = "bash" ]; then
 		EXEC="bash"
 	fi
 	while IFS= read -r line
 	do
-		echo "$line" | $EXEC 2>> "$OUTPUT_DIR/$1_err_$2"  >> "$OUTPUT_DIR/$1_$2"
+		echo "$line" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
+		cat_files bash
+		echo "$line" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell"
+		cat_files minishell
+		cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
+		cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
+		cat "$OUTPUT_DIR/tmp_bash" >> "$OUTPUT_DIR/$1_bash"
+		cat "$OUTPUT_DIR/tmp_minishell" >> "$OUTPUT_DIR/$1_minishell"
+		DIFF=$(diff $OUTPUT_DIR/tmp_bash $OUTPUT_DIR/tmp_minishell)
+		if [ "$DIFF" != "" ]; then
+			echo "☆(・ω・)★☆(・ω・)★☆(FAIL)★☆(・ω・)★☆(・ω・)★" >> log
+			echo COMMAND : "$line" >> log
+			echo "$DIFF" >> log
+			echo "" >> log
+		fi
 	done < "test/$1"
-	cat_files $2
 	return 0
 }
 
@@ -101,7 +117,7 @@ function lauch_test {
 	echo -e "\n"$1 | tr a-z A-Z
 	echo -en "Execution\t: "
 	read_test "$1" bash
-	read_test "$1" minishell
+	# read_test "$1" minishell
 	ERROR=$?
 	if [ "$ERROR" = "1" ]; then
 		print_color "[FAILURE]" $FAIL
@@ -119,10 +135,13 @@ function lauch_test {
 }
 
 make -C $DIR
-rm -rf minishell "$OUTPUT_DIR" "$FILES_OUT_DIR"
+rm -rf minishell log "$OUTPUT_DIR" "$FILES_OUT_DIR"
 mkdir -p "$OUTPUT_DIR" "$FILES_OUT_DIR" "$FILES_OUT_DIR"/bash "$FILES_OUT_DIR"/minishell "$FILES_OUT_DIR"/tmp
 ln -s "$DIR/minishell" minishell
 lauch_test echo
 lauch_test argument
 lauch_test multi_cmd
 lauch_test output_redirection
+lauch_test executable
+lauch_test input_redirection
+lauch_test pipe
