@@ -6,7 +6,6 @@ OUTPUT_DIR="output"
 FILES_IN_DIR="files/input"
 FILES_OUT_DIR="files/output"
 FILE_TMP_DIR="$FILES_OUT_DIR"/tmp
-echo $FILE_TMP_DIR
 OK=$'\033[38;5;46m'
 OPT=$'\033[38;5;11m'
 FAIL=$'\033[38;5;9m'
@@ -119,8 +118,7 @@ function lauch_test {
 	fi
 	echo -e "\n"$1 | tr a-z A-Z
 	echo -en "Execution\t: "
-	read_test "$1" bash
-	# read_test "$1" minishell
+	read_test "$1"
 	ERROR=$?
 	if [ "$ERROR" = "1" ]; then
 		print_color "[FAILURE]" $FAIL
