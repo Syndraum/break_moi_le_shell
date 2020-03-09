@@ -1,15 +1,12 @@
 > :warning: **Important note: still in development. Some bugs may appear**
-
-# Presentation
-
-This tester compares outputs of your minishell with bash
+> **Do not use it for your corrections (stupidly)**
 
 # Installation
 Clone this reposity next to your project directory
 ```
 .
 |- minishell/
-|- minishell_tester/
+|- break_minishell/
 ```
 Change the path to your project directory if necessary in ```launch.sh```
 ```
