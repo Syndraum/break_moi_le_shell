@@ -2,3 +2,4 @@ python -V
 cat lauch.sh
 ls
 reckt; echo $?
+./files

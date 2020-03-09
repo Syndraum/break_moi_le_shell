@@ -6,9 +6,13 @@ echo $HOME
 echo "$HOME"
 echo $RIP;
 echo $HOME;
+echo \
+echo \\
+echo '\\\\'
 echo $
 echo "$"
 echo \$
+echo "\n"
 echo "\$"
 echo $\'PWD\'
 echo $\"PWD\"

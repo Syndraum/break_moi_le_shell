@@ -75,13 +75,16 @@ function check_std_output {
 function check_err_output {
 	echo -en "Error output\t: "
 	DIFF=$(diff $OUTPUT_DIR/$1_err_bash $OUTPUT_DIR/$1_err_minishell)
-	if [ "$DIFF" = "" ]
-	then
+	NBLINE_BASH=$(wc -l < $OUTPUT_DIR/$1_err_bash)
+	NBLINE_MINISHELL=$(wc -l < $OUTPUT_DIR/$1_err_minishell)
+	if [ "$DIFF" = "" ]; then
 		print_color "[OK]" $OK
 		rm -rf "$OUTPUT_DIR/$1_err_bash"
 		rm -rf "$OUTPUT_DIR/$1_err_minishell" 
-	else
+	elif [ "$NBLINE_BASH" = "$NBLINE_MINISHELL" ]; then
 		print_color "[KO]" $OPT
+	else
+		print_color "[KO]" $FAIL
 	fi
 }
 
