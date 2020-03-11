@@ -18,8 +18,8 @@ function print_color() {
 
 function cat_files {
 	echo "$FILE_TMP_DIR"/* | grep '*' 2>/dev/null >/dev/null
-	ERROR=$?
-	if [ "$ERROR" = "0" ]; then
+	ERROR_CAT=$?
+	if [ "$ERROR_CAT" = "0" ]; then
 		return 1;
 	fi
 	for file in $FILE_TMP_DIR/*
@@ -34,29 +34,33 @@ function read_test {
 	touch "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
 	touch "$OUTPUT_DIR/$1_err_bash" "$OUTPUT_DIR/$1_bash"
 	touch "$OUTPUT_DIR/$1_err_minishell" "$OUTPUT_DIR/$1_minishell"
-	EXEC="./minishell"
-	if [ "$2" = "bash" ]; then
-		EXEC="bash"
-	fi
+	RET=0
 	while IFS= read -r line
 	do
+		ERROR_READ=0
 		echo "$line" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
 		cat_files bash
-		echo "$line" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell"
+		(echo "$line" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null || ERROR_READ=1
 		cat_files minishell
 		cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
 		cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
 		cat "$OUTPUT_DIR/tmp_bash" >> "$OUTPUT_DIR/$1_bash"
 		cat "$OUTPUT_DIR/tmp_minishell" >> "$OUTPUT_DIR/$1_minishell"
 		DIFF=$(diff $OUTPUT_DIR/tmp_bash $OUTPUT_DIR/tmp_minishell)
-		if [ "$DIFF" != "" ]; then
+		if [ "$ERROR_READ" = "1" ];then
+			RET=1
+			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
+			echo COMMAND : "$line" >> log
+			echo "SEGFAULT" >> log
+			echo "" >> log
+		elif [ "$DIFF" != "" ]; then
 			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
 			echo COMMAND : "$line" >> log
 			echo "$DIFF" >> log
 			echo "" >> log
 		fi
 	done < "test/$1"
-	return 0
+	return "$RET"
 }
 
 function check_std_output {
@@ -89,24 +93,24 @@ function check_err_output {
 }
 
 function check_file_output {
-	ERROR=0
+	ERROR_FILE=0
 	for file in $FILES_OUT_DIR/bash/*
 	do
 		filename=$(echo $file | sed -e "s/files\/output\/bash\///g")
 		FIND=$(find "$FILES_OUT_DIR"/minishell -name "$filename" -type f)
 		if [ -z "$FIND" ]; then
-			ERROR=1
+			ERROR_FILE=1
 		else
 			DIFF=$(diff $FILES_OUT_DIR/bash/$filename $FILES_OUT_DIR/minishell/$filename)
 			if [ "$DIFF" != "" ] ; then
-				ERROR=1
+				ERROR_FILE=1
 			else
 				rm -rf "$FILES_OUT_DIR"/bash/"$filename"
 				rm -rf "$FILES_OUT_DIR"/minishell/"$filename"
 			fi
 		fi
 	done
-	if [ "$ERROR" = "1" ]; then
+	if [ "$ERROR_FILE" = "1" ]; then
 		print_color "[FAILURE]" $FAIL
 	else
 		print_color "[OK]" $OK
@@ -123,6 +127,7 @@ function lauch_test {
 	ERROR=$?
 	if [ "$ERROR" = "1" ]; then
 		print_color "[FAILURE]" $FAIL
+		return 1
 	else
 		print_color "[OK]" $OK
 	fi
