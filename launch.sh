@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Change project directory
 DIR="../minishell"
 
 OUTPUT_DIR="output"
@@ -49,7 +50,7 @@ function read_test {
 		cat "$OUTPUT_DIR/tmp_minishell" >> "$OUTPUT_DIR/$1_minishell"
 		DIFF=$(diff $OUTPUT_DIR/tmp_bash $OUTPUT_DIR/tmp_minishell)
 		if [ "$DIFF" != "" ]; then
-			echo "☆(・ω・)★☆(・ω・)★☆(FAIL)★☆(・ω・)★☆(・ω・)★" >> log
+			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
 			echo COMMAND : "$line" >> log
 			echo "$DIFF" >> log
 			echo "" >> log
@@ -142,6 +143,7 @@ ln -s "$DIR/minishell" minishell
 lauch_test echo
 lauch_test argument
 lauch_test multi_cmd
+lauch_test cd_and_pwd
 lauch_test output_redirection
 lauch_test executable
 lauch_test input_redirection

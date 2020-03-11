@@ -1,4 +1,5 @@
 > :warning: **Important note: still in development. Some bugs may appear**
+
 > **Do not use it for your corrections (stupidly)**
 
 # Installation
@@ -14,6 +15,6 @@ Change the path to your project directory if necessary in ```launch.sh```
 DIR="../minishell/"
 ```
 
-Youn can open ```log``` file to see which command didn't work
-
 run the command ```bash launch.sh```
+
+Youn can open ```log``` file to see which command didn't work
