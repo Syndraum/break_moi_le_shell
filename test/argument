@@ -11,6 +11,7 @@ echo $
 echo "$"
 echo \$
 echo "\n"
+echo "\a"
 echo "\$"
 echo "\$USER"
 echo $\'PWD\'
