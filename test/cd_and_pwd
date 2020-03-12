@@ -1,4 +1,4 @@
-pwd;
+pwd
 cd ..;pwd
 cd /;pwd
-cd rgjnrjn; echo $?
+cd rgjnrjn

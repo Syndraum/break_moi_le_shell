@@ -1,9 +1,10 @@
 echo test | wc
 cat launch.sh | grep echo | wc
-cat launch.sh | grep ehbghbeg; echo $?
-cat launch.sh | grep; echo $?
+cat launch.sh | grep ehbghbeg;
+cat launch.sh | grep;
 exit | echo test;
 echo test | exit;
 echo test | | wc; echo lol
 echo lol; echo test | | wc 
 cat launch.sh | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat | cat
+|

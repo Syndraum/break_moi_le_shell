@@ -29,6 +29,23 @@ function cat_files {
 	done
 }
 
+function try_test {
+	RET=0
+	while IFS= read -r line
+	do
+		ERROR_TRY=0
+		(echo "$line" | ./minishell 2> "/dev/null"  > "/dev/null") 2>> /dev/null || ERROR_TRY=1
+		if [ "$ERROR_TRY" = "1" ];then
+			RET=1
+			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
+			echo COMMAND : "$line" >> log
+			echo "SEGFAULT" >> log
+			echo "" >> log
+		fi
+	done < "test/$1"
+	return "$RET"
+}
+
 function read_test {
 	touch "$OUTPUT_DIR/tmp_err_bash" "$OUTPUT_DIR/tmp_bash"
 	touch "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
@@ -38,9 +55,9 @@ function read_test {
 	while IFS= read -r line
 	do
 		ERROR_READ=0
-		echo "$line" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
+		echo "$line;echo \$?" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
 		cat_files bash
-		(echo "$line" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null || ERROR_READ=1
+		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null #|| ERROR_READ=1
 		cat_files minishell
 		cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
 		cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
@@ -50,16 +67,17 @@ function read_test {
 		if [ "$ERROR_READ" = "1" ];then
 			RET=1
 			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
-			echo COMMAND : "$line" >> log
+			echo COMMAND : "\" $line;echo \$? \"" >> log
 			echo "SEGFAULT" >> log
 			echo "" >> log
 		elif [ "$DIFF" != "" ]; then
 			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
-			echo COMMAND : "$line" >> log
+			echo COMMAND : "\" $line;echo \$? \"" >> log
 			echo "$DIFF" >> log
 			echo "" >> log
 		fi
 	done < "test/$1"
+	rm -rf "$OUTPUT_DIR/tmp_err_bash" "$OUTPUT_DIR/tmp_bash" "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
 	return "$RET"
 }
 
@@ -117,6 +135,22 @@ function check_file_output {
 	fi
 }
 
+function lauch_try_segfault {
+	if [ -z "$1" ]; then
+		return 1
+	fi
+	echo -e "\n"$1 | tr a-z A-Z
+	echo -en "Execution\t: "
+	try_test "$1"
+	ERROR=$?
+	if [ "$ERROR" = "1" ]; then
+		print_color "[FAILURE]" $FAIL
+		return 1
+	else
+		print_color "[OK]" $OK
+	fi
+}
+
 function lauch_test {
 	if [ -z "$1" ]; then
 		return 1
@@ -153,3 +187,4 @@ lauch_test output_redirection
 lauch_test executable
 lauch_test input_redirection
 lauch_test pipe
+lauch_try_segfault try_segfault

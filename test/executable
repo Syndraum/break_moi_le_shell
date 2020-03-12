@@ -1,5 +1,8 @@
 python -V
 cat lauch.sh
 ls
-reckt; echo $?
+reckt
+files
 ./files
+test
+pYtHOn -V

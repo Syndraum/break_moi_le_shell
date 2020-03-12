@@ -1,12 +1,10 @@
 echo bonjour
 echo "bonjour"
 echo 'bonjour'
-echo $?
 echo $HOME
 echo "$HOME"
 echo $RIP;
 echo $HOME;
-echo \
 echo \\
 echo '\\\\'
 echo $
