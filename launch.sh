@@ -52,12 +52,13 @@ function read_test {
 	touch "$OUTPUT_DIR/$1_err_bash" "$OUTPUT_DIR/$1_bash"
 	touch "$OUTPUT_DIR/$1_err_minishell" "$OUTPUT_DIR/$1_minishell"
 	RET=0
+	ERROR_OUTPUT=0
 	while IFS= read -r line
 	do
 		ERROR_READ=0
 		echo "$line;echo \$?" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
 		cat_files bash
-		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null #|| ERROR_READ=1
+		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null || ERROR_READ=1
 		cat_files minishell
 		cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
 		cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
@@ -74,6 +75,15 @@ function read_test {
 			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
 			echo COMMAND : "\" $line;echo \$? \"" >> log
 			echo "$DIFF" >> log
+			echo "" >> log
+		fi
+		NBLINE_BASH=$(wc -l < $OUTPUT_DIR/tmp_err_bash)
+		NBLINE_MINISHELL=$(wc -l < $OUTPUT_DIR/tmp_err_minishell)
+		if [ $NBLINE_BASH -gt 0 -a $NBLINE_MINISHELL -eq 0 ];then
+			ERROR_OUTPUT=1
+			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
+			echo COMMAND : "\" $line;echo \$? \"" >> log
+			echo $(diff $OUTPUT_DIR/tmp_err_bash $OUTPUT_DIR/tmp_err_minishell) >> log
 			echo "" >> log
 		fi
 	done < "test/$1"
@@ -96,15 +106,8 @@ function check_std_output {
 
 function check_err_output {
 	echo -en "Error output\t: "
-	DIFF=$(diff $OUTPUT_DIR/$1_err_bash $OUTPUT_DIR/$1_err_minishell)
-	NBLINE_BASH=$(wc -l < $OUTPUT_DIR/$1_err_bash)
-	NBLINE_MINISHELL=$(wc -l < $OUTPUT_DIR/$1_err_minishell)
-	if [ "$DIFF" = "" ]; then
+	if [ $ERROR_OUTPUT -ne 1 ]; then
 		print_color "[OK]" $OK
-		rm -rf "$OUTPUT_DIR/$1_err_bash"
-		rm -rf "$OUTPUT_DIR/$1_err_minishell" 
-	elif [ "$NBLINE_BASH" = "$NBLINE_MINISHELL" ]; then
-		print_color "[KO]" $OPT
 	else
 		print_color "[KO]" $FAIL
 	fi
@@ -183,8 +186,8 @@ lauch_test echo
 lauch_test argument
 lauch_test multi_cmd
 lauch_test cd_and_pwd
-lauch_test output_redirection
 lauch_test executable
+lauch_test output_redirection
 lauch_test input_redirection
 lauch_test pipe
 lauch_try_segfault try_segfault
