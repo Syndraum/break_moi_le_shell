@@ -2,3 +2,4 @@ echo test > files/output/tmp/test
 echo lol >> files/output/tmp/lol
 echo bonjour >> files/output/tmp/bonjour; echo je suis gentil > files/output/tmp/bonjour
 echo Reckt > files/output/tmp/Reckt; echo Reckt >> files/output/tmp/Reckt
+echo lol > output
