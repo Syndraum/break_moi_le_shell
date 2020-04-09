@@ -7,6 +7,7 @@ OUTPUT_DIR="output"
 FILES_IN_DIR="files/input"
 FILES_OUT_DIR="files/output"
 FILE_TMP_DIR="$FILES_OUT_DIR"/tmp
+#COLOR
 OK=$'\033[38;5;46m'
 OPT=$'\033[38;5;11m'
 FAIL=$'\033[38;5;9m'
@@ -46,13 +47,31 @@ function try_test {
 	return "$RET"
 }
 
-function read_test {
+function create_tmp_file {
 	touch "$OUTPUT_DIR/tmp_err_bash" "$OUTPUT_DIR/tmp_bash"
 	touch "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
 	touch "$OUTPUT_DIR/$1_err_bash" "$OUTPUT_DIR/$1_bash"
 	touch "$OUTPUT_DIR/$1_err_minishell" "$OUTPUT_DIR/$1_minishell"
+}
+
+function cpy_tmp_file {
+	cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
+	cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
+	cat "$OUTPUT_DIR/tmp_bash" >> "$OUTPUT_DIR/$1_bash"
+	cat "$OUTPUT_DIR/tmp_minishell" >> "$OUTPUT_DIR/$1_minishell"
+}
+
+function echo_log {
+	echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
+	echo COMMAND : "\" $line;echo \$? \"" >> log
+	echo $1 >> log
+	echo "" >> log
+}
+
+function read_test {
 	RET=0
 	ERROR_OUTPUT=0
+	create_tmp_file
 	while IFS= read -r line
 	do
 		ERROR_READ=0
@@ -60,31 +79,19 @@ function read_test {
 		cat_files bash
 		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null || ERROR_READ=1
 		cat_files minishell
-		cat "$OUTPUT_DIR/tmp_err_bash" >> "$OUTPUT_DIR/$1_err_bash"
-		cat "$OUTPUT_DIR/tmp_err_minishell" >> "$OUTPUT_DIR/$1_err_minishell"
-		cat "$OUTPUT_DIR/tmp_bash" >> "$OUTPUT_DIR/$1_bash"
-		cat "$OUTPUT_DIR/tmp_minishell" >> "$OUTPUT_DIR/$1_minishell"
+		cpy_tmp_file $1
 		DIFF=$(diff $OUTPUT_DIR/tmp_bash $OUTPUT_DIR/tmp_minishell)
 		if [ "$ERROR_READ" = "1" ];then
 			RET=1
-			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
-			echo COMMAND : "\" $line;echo \$? \"" >> log
-			echo "SEGFAULT" >> log
-			echo "" >> log
+			echo_log "SEGFAULT"
 		elif [ "$DIFF" != "" ]; then
-			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
-			echo COMMAND : "\" $line;echo \$? \"" >> log
-			echo "$DIFF" >> log
-			echo "" >> log
+			echo_log "$DIFF"
 		fi
 		NBLINE_BASH=$(wc -l < $OUTPUT_DIR/tmp_err_bash)
 		NBLINE_MINISHELL=$(wc -l < $OUTPUT_DIR/tmp_err_minishell)
 		if [ $NBLINE_BASH -gt 0 -a $NBLINE_MINISHELL -eq 0 ];then
 			ERROR_OUTPUT=1
-			echo "-=x=-=x=-=x=-=x=☆(・ω・)★-=x=-=x=-=x=-=x=-" >> log
-			echo COMMAND : "\" $line;echo \$? \"" >> log
-			echo $(diff $OUTPUT_DIR/tmp_err_bash $OUTPUT_DIR/tmp_err_minishell) >> log
-			echo "" >> log
+			echo_log "$(diff $OUTPUT_DIR/tmp_err_bash $OUTPUT_DIR/tmp_err_minishell)"
 		fi
 	done < "test/$1"
 	rm -rf "$OUTPUT_DIR/tmp_err_bash" "$OUTPUT_DIR/tmp_bash" "$OUTPUT_DIR/tmp_err_minishell" "$OUTPUT_DIR/tmp_minishell"
