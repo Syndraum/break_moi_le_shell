@@ -3,8 +3,8 @@ echo "bonjour"
 echo 'bonjour'
 echo $HOME
 echo "$HOME"
-echo $RIP;
-echo $HOME;
+echo $RIP
+echo $HOME
 echo \\
 echo '\\\\'
 echo $
@@ -16,6 +16,6 @@ echo "\$"
 echo "\$USER"
 echo $\'PWD\'
 echo $\"PWD\"
-echo -n -n One"argument"'lo'l; echo "n"''ee"d"more'?'''"'";
+echo -n -n One"argument"'lo'l; echo "n"''ee"d"more'?'''"'"
 echo \n\e\e\e\d \m\o\r\e \! \\\\\\
 echo '\\please\\' "\"fail\\"

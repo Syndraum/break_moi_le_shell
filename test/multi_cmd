@@ -1,4 +1,4 @@
 echo one; echo two; echo three
-echo ;
-echo a; echo b; echo c; echo d; echo e; echo f; echo g; echo h; echo i; echo j; echo k; echo l; echo m; echo n; echo o; echo p; echo q; echo r; echo s; echo t; echo u; echo v; echo w; echo x; echo y; echo z;
+echo 
+echo a; echo b; echo c; echo d; echo e; echo f; echo g; echo h; echo i; echo j; echo k; echo l; echo m; echo n; echo o; echo p; echo q; echo r; echo s; echo t; echo u; echo v; echo w; echo x; echo y; echo z
 echo ;;;;
