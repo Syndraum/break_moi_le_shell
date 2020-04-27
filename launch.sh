@@ -71,7 +71,7 @@ function echo_log {
 function read_test {
 	RET=0
 	ERROR_OUTPUT=0
-	create_tmp_file
+	create_tmp_file $1
 	while IFS= read -r line
 	do
 		ERROR_READ=0
