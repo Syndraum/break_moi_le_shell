@@ -1,6 +1,9 @@
 python -V
 cat lauch.sh
 ls
+/bin/ls
+/bin/lol
+/bin/ls/lol
 reckt
 files
 ./files
