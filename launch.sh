@@ -276,10 +276,22 @@ function	lauch_test {
 	fi
 }
 
+function is_test {
+	for test in test/*
+	do
+		filename=$(echo $test | sed -e "s/test\///g")
+		if [ "$filename" = "$1" ]; then
+			return 1
+		fi
+	done
+	return 0
+}
+
 rm -rf minishell log "$OUTPUT_DIR" "$FILES_OUT_DIR"
 ALL=0
 OUTPUT=0
 ZSH=0
+TEST=""
 for i in "$@"
 do
 	if [ "$i" = "-a" ]; then
@@ -289,8 +301,14 @@ do
 	elif [ "$i" = "-z" ]; then
 		ZSH=1;
 	else
-		echo "Error argument not valid : $i"
-		exit
+		is_test "$i"
+		IS_TEST=$?
+		if [ $IS_TEST -eq 0 ]; then
+			echo "Error argument not valid : $i"
+			exit
+		else
+			TEST=$i
+		fi
 	fi
 done
 make -C $DIR
@@ -302,12 +320,16 @@ fi
 if [ $ZSH -ne 1 -o $ALL -eq 1 ]; then
 	mkdir "$FILES_OUT_DIR"/bash
 fi
-lauch_test echo
-lauch_test argument
-lauch_test multi_cmd
-lauch_test cd_and_pwd
-lauch_test executable
-lauch_test output_redirection
-lauch_test input_redirection
-lauch_test pipe
-lauch_try_segfault try_segfault
+if [ "$TEST" != "" ]; then
+	lauch_test $TEST
+else
+	lauch_test echo
+	lauch_test argument
+	lauch_test multi_cmd
+	lauch_test cd_and_pwd
+	lauch_test executable
+	lauch_test output_redirection
+	lauch_test input_redirection
+	lauch_test pipe
+	lauch_try_segfault try_segfault
+fi
