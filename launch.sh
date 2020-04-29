@@ -208,30 +208,57 @@ function	check_err_output {
 	fi
 }
 
-#			check_file_output()
-function	check_file_output {
+#			check_file_shell(name_shell)
+function	check_file_shell {
 	ERROR_FILE=0
-	for file in $FILES_OUT_DIR/bash/*
+	DIR_SHELL="s/files\/output\/$1\///g"
+	for file in $FILES_OUT_DIR/$1/*
 	do
-		filename=$(echo $file | sed -e "s/files\/output\/bash\///g")
+		filename=$(echo $file | sed -e $DIR_SHELL)
 		FIND=$(find "$FILES_OUT_DIR"/minishell -name "$filename" -type f)
 		if [ -z "$FIND" ]; then
 			ERROR_FILE=1
 		else
-			DIFF=$(diff $FILES_OUT_DIR/bash/$filename $FILES_OUT_DIR/minishell/$filename)
+			DIFF=$(diff $FILES_OUT_DIR/$1/$filename $FILES_OUT_DIR/minishell/$filename)
 			if [ "$DIFF" != "" ] ; then
 				ERROR_FILE=1
 			else
-				rm -rf "$FILES_OUT_DIR"/bash/"$filename"
-				rm -rf "$FILES_OUT_DIR"/minishell/"$filename"
+				rm -rf "$FILES_OUT_DIR"/"$1"/"$filename"
+				# rm -rf "$FILES_OUT_DIR"/minishell/"$filename"
 			fi
 		fi
 	done
-	if [ "$ERROR_FILE" = "1" ]; then
-		print_color "[FAILURE]" $FAIL
+}
+
+#			error_file_shell(name_shell)
+function	error_file_shell {
+	check_file_shell $1
+	UPPER=$1
+	UPPER=${UPPER^^}
+	if [ $ALL -eq 0 ];then
+		if [ "$ERROR_FILE" = "1" ]; then
+			print_color "[FAILURE]" $FAIL -n
+		else
+			print_color "[OK]" $OK -n
+		fi
 	else
-		print_color "[OK]" $OK
+		if [ "$ERROR_FILE" = "1" ]; then
+			print_color "[$UPPER]" $FAIL -n
+		else
+			print_color "[$UPPER]" $OK -n
+		fi
 	fi
+}
+
+#			check_file_output()
+function	check_file_output {
+	if [ $ZSH -ne 1 -o $ALL -eq 1 ]; then
+		error_file_shell bash
+	fi
+	if [ $ZSH -eq 1 -o $ALL -eq 1 ]; then
+		error_file_shell zsh
+	fi
+	echo ''
 }
 
 #			lauch_try_segfault(test_name)
@@ -270,13 +297,16 @@ function	lauch_test {
 	check_err_output $1
 	echo "$FILES_OUT_DIR"/bash/* | grep '*' 2>/dev/null >/dev/null
 	ERROR=$?
-	if [ "$ERROR" = "1" ]; then
+	echo "$FILES_OUT_DIR"/zsh/* | grep '*' 2>/dev/null >/dev/null
+	ERROR_ZSH_FILE=$?
+	if [ $ERROR -eq 1 -o $ERROR_ZSH_FILE -eq 1 ]; then
 		echo -en "File output\t: "
 		check_file_output
 	fi
 }
 
-function is_test {
+#			is_test(name_test)
+function	is_test {
 	for test in test/*
 	do
 		filename=$(echo $test | sed -e "s/test\///g")
@@ -287,30 +317,35 @@ function is_test {
 	return 0
 }
 
-rm -rf minishell log "$OUTPUT_DIR" "$FILES_OUT_DIR"
-ALL=0
-OUTPUT=0
-ZSH=0
-TEST=""
-for i in "$@"
-do
-	if [ "$i" = "-a" ]; then
-		ALL=1
-	elif [ "$i" = "-o" ];then
-		OUTPUT=1;
-	elif [ "$i" = "-z" ]; then
-		ZSH=1;
-	else
-		is_test "$i"
-		IS_TEST=$?
-		if [ $IS_TEST -eq 0 ]; then
-			echo "Error argument not valid : $i"
-			exit
+#			set_option(...)
+function	set_option {
+	ALL=0
+	OUTPUT=0
+	ZSH=0
+	TEST=""
+	for i in "$@"
+	do
+		if [ "$i" = "-a" ]; then
+			ALL=1
+		elif [ "$i" = "-o" ];then
+			OUTPUT=1;
+		elif [ "$i" = "-z" ]; then
+			ZSH=1;
 		else
-			TEST=$i
+			is_test "$i"
+			IS_TEST=$?
+			if [ $IS_TEST -eq 0 ]; then
+				echo "Error argument not valid : $i"
+				exit
+			else
+				TEST=$i
+			fi
 		fi
-	fi
-done
+	done
+}
+
+rm -rf minishell log "$OUTPUT_DIR" "$FILES_OUT_DIR"
+set_option $@
 make -C $DIR
 ln -s "$DIR/minishell" minishell
 mkdir -p "$OUTPUT_DIR" "$FILES_OUT_DIR" "$FILES_OUT_DIR"/minishell "$FILES_OUT_DIR"/tmp
