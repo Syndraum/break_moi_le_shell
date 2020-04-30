@@ -109,7 +109,8 @@ function	read_test {
 			echo "$line;echo \$?" | bash 2> "$OUTPUT_DIR/tmp_err_bash"  > "$OUTPUT_DIR/tmp_bash"
 			cat_files bash
 		fi
-		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null || ERROR_READ=1
+		(echo "$line;echo \$?" | ./minishell 2> "$OUTPUT_DIR/tmp_err_minishell"  > "$OUTPUT_DIR/tmp_minishell") 2>> /dev/null
+		ERROR_READ=$?
 		cat_files minishell
 		cpy_tmp_file $1
 		if [ $ZSH -eq 1 -o $ALL -eq 1 ]; then
@@ -118,7 +119,7 @@ function	read_test {
 		if [ $ZSH -ne 1 -o $ALL -eq 1 ]; then
 			BASH_DIFF=$(diff $OUTPUT_DIR/tmp_bash $OUTPUT_DIR/tmp_minishell)
 		fi
-		if [ "$ERROR_READ" = "1" ];then
+		if [ $ERROR_READ -eq 139 ];then
 			RET=1
 			echo_log "SEGFAULT"
 		elif [ -n "$BASH_DIFF" ]; then
